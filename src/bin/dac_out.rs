@@ -7,8 +7,8 @@ LICENSE: See LICENSE file
 
 use analogulator as _; // global logger + panicking-behavior + memory layout
 
-/// Example using a HAL-provided RNG
-///
+/// Example using a HAL-provided RNG to produce a
+/// varying analog signal via the stm32f4's DAC peripheral
 ///
 use stm32f4xx_hal as p_hal;
 use p_hal::pac as pac;
@@ -20,8 +20,8 @@ use sensulator::{MeasureVal, Sensulator};
 use defmt::println;
 
 
-// create some fake sensor values based on a 12-bit DAC range
-const MOCK_SENSOR_CTR_VAL:MeasureVal = (0x0FFF / 2) as MeasureVal;
+// create some simulated sensor values based on a 12-bit DAC range
+const MOCK_SENSOR_CTR_VAL:MeasureVal = ((0x0FFF / 2) + 4)  as MeasureVal;
 const MOCK_SENSOR_ABS_ERR:MeasureVal = (0x0FFF/ 64) as MeasureVal;
 const MOCK_SENSOR_REL_ERR:MeasureVal = (0x0FFF / 16) as MeasureVal;
 
@@ -34,7 +34,7 @@ fn main() -> ! {
     let clocks = rcc.cfgr.require_pll48clk().freeze();
     let gpioa = dp.GPIOA.split();
 
-    //PA4, PA5 support DAC
+    //on stm32f4, PA4, PA5 pins support DAC output
     let pin_raw = gpioa.pa4.into_analog();
     let mut pin_dac = dp.DAC.constrain(pin_raw);
     pin_dac.set_value(0);
@@ -45,6 +45,8 @@ fn main() -> ! {
     let mut sensor = Sensulator::new(MOCK_SENSOR_CTR_VAL, MOCK_SENSOR_ABS_ERR, MOCK_SENSOR_REL_ERR, &mut my_rng);
     for _n in 0..1000 {
         // update the sensor reading and display (requires a mutable sensulator reference)
+        // a richer example would change the "center" value of the sensor over
+        // time as well, using `sensor.set_center_value`
         let uval = sensor.measure() as u16;
         pin_dac.set_value(uval);
         let rval = pin_dac.get_value();

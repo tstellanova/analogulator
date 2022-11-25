@@ -37,11 +37,14 @@ fn main() -> ! {
     let mut my_rng = ChaCha8Rng::from_seed(HAY_SEED);
 
     let mut fake_gps_lat = Sensulator::new(HOME_LAT, GPS_HORIZ_ABS_ERROR, GPS_HORIZ_REL_ERROR, &mut my_rng);
-    loop {
-        // update the sensor reading and display (requires a mutable sensulator reference)
-        println!("new lat: {}", fake_gps_lat.measure());
-        // simply display the last measured value (may use an immutable reference)
-        println!("old lat: {}", fake_gps_lat.peek());
+    let mut old_peek_val = 0 as MeasureVal;
+    for _in in 0..1000 {
+        // read a noise-affected sensor value (requires a mutable sensulator reference)
+        let cur_val: MeasureVal = fake_gps_lat.measure();
+        println!("old: {} new: {}", old_peek_val, cur_val);
+
+        // simply read the last measured value (may use an immutable reference)
+        old_peek_val = fake_gps_lat.peek();
     }
 
     analogulator::exit()

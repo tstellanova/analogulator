@@ -2,6 +2,14 @@
 Samples for injecting signals that emulate an analog sensor,
 using embedded hardware.
 
+# Build and Run
+
+Once you have your development environment setup (see below),
+running on an stm32f4 target (with TRNG) is as simple as:
+
+- `cargo rb reproducible` (uses software PRNG and doesn't require a hardware TRNG peripheral)
+- `cargo rb dac_out` (requires TRNG and DAC peripherals)
+
 # Development Environment
 
 This project was built using a `cargo-generate` [template](https://github.com/knurling-rs/app-template):
