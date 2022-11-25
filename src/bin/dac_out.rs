@@ -16,9 +16,14 @@ use p_hal::gpio::GpioExt;
 use p_hal::rng::RngExt;
 use p_hal::rcc::RccExt;
 use p_hal::dac::{DacExt, DacOut};
-use sensulator::{Sensulator};
+use sensulator::{MeasureVal, Sensulator};
 use defmt::println;
 
+
+// create some fake sensor values based on a 12-bit DAC range
+const MOCK_SENSOR_CTR_VAL:MeasureVal = (0x0FFF / 2) as MeasureVal;
+const MOCK_SENSOR_ABS_ERR:MeasureVal = (0x0FFF/ 64) as MeasureVal;
+const MOCK_SENSOR_REL_ERR:MeasureVal = (0x0FFF / 16) as MeasureVal;
 
 #[cortex_m_rt::entry]
 fn main() -> ! {
@@ -34,18 +39,13 @@ fn main() -> ! {
     let mut pin_dac = dp.DAC.constrain(pin_raw);
     pin_dac.set_value(0);
 
-    // create an unpredictable RNG using HAL-provided RNG
+    //example: create an unpredictable RNG using HAL-provided RNG
     let mut my_rng = dp.RNG.constrain(&clocks);
 
-    // create some fake sensor values based on DAC 12-bit range
-    const U16_MIDPOINT:f32 = (0x0FFF / 2) as f32;
-    const U16_ABS_ERR:f32 = (0x0FFF/ 64)  as f32;
-    const U16_REL_ERR:f32 = (0x0FFF / 16) as f32;
-
-    let mut emulator = Sensulator::new(U16_MIDPOINT,U16_ABS_ERR, U16_REL_ERR, &mut my_rng);
-    loop {
+    let mut sensor = Sensulator::new(MOCK_SENSOR_CTR_VAL, MOCK_SENSOR_ABS_ERR, MOCK_SENSOR_REL_ERR, &mut my_rng);
+    for _n in 0..1000 {
         // update the sensor reading and display (requires a mutable sensulator reference)
-        let uval = emulator.measure() as u16;
+        let uval = sensor.measure() as u16;
         pin_dac.set_value(uval);
         let rval = pin_dac.get_value();
         println!("{} {}", uval, rval);
