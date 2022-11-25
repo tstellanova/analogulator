@@ -7,16 +7,14 @@ LICENSE: See LICENSE file
 
 use analogulator as _; // global logger + panicking-behavior + memory layout
 
-/// Example using a HAL-provided RNG
+/// Example using a predicatable PRNG
 ///
 ///
-use stm32f4xx_hal as p_hal;
-use p_hal::pac as pac;
-use p_hal::rng::RngExt;
-use p_hal::rcc::RccExt;
+
 use sensulator::{MeasureVal, Sensulator};
-// use rand::SeedableRng;
 use defmt::println;
+use rand::SeedableRng;
+use rand_chacha::ChaCha8Rng;
 
 /// Latitude of Berkeley, California
 const HOME_LAT:MeasureVal = 37.8716;
@@ -29,11 +27,14 @@ const GPS_HORIZ_REL_ERROR:MeasureVal = 4.5e-5;
 fn main() -> ! {
     println!("begin");
 
-    let dp = pac::Peripherals::take().unwrap();
-    let rcc = dp.RCC.constrain();
-    let clocks = rcc.cfgr.require_pll48clk().freeze();
-    // create an unpredictable RNG using HAL-provided RNG
-    let mut my_rng = dp.RNG.constrain(&clocks);
+    // create a platform-independent predictable PRNG starting with a seed
+    const HAY_SEED: [u8; 32] = [
+        0xFE,0xED, 0xAB, 0xBA, 0xDE,0xAD, 0xBE, 0xEF,
+        0xFE,0xED, 0xAB, 0xBA, 0xDE,0xAD, 0xBE, 0xEF,
+        0xFE,0xED, 0xAB, 0xBA, 0xDE,0xAD, 0xBE, 0xEF,
+        0xFE,0xED, 0xAB, 0xBA, 0xDE,0xAD, 0xBE, 0xEF,
+    ];
+    let mut my_rng = ChaCha8Rng::from_seed(HAY_SEED);
 
     let mut fake_gps_lat = Sensulator::new(HOME_LAT, GPS_HORIZ_ABS_ERROR, GPS_HORIZ_REL_ERROR, &mut my_rng);
     loop {
