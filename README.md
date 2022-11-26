@@ -18,7 +18,7 @@ This project was built using a `cargo-generate` [template](https://github.com/kn
 
 This project assumes you have dependencies such as `probe-run` installed.
 For convenience I've inlined the template setup instructions below.
-Note that the samples in this project are setup to run on STM32F417, with the peripherals
+Note that the samples in this project are setup to run on STM32F407, with the peripherals
 that MCU provides.
 
 > Quickly set up a [`probe-run`] + [`defmt`] + [`flip-link`] embedded project

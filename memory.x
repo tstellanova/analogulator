@@ -1,5 +1,5 @@
 /* memory file for stm32f401CxUx */
-/* known to be not fully correct for stm32417 */
+/* known to be good enough stm32407 */
 
 MEMORY
 {
